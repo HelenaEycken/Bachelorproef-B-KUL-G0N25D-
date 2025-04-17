@@ -16,7 +16,7 @@ from scipy.integrate import solve_ivp
 
 # Define parameters
 γ = 0.23               # Decay rate of antibiotics
-Ca = 0.3873              # Initial concentration of antibiotics
+Ca = 0.3873            # Initial concentration of antibiotics
 e = 1                  # Efficacy of antibiotics
 ka = 10**(5.4)         # Antibiotic killing constant
 
@@ -44,12 +44,6 @@ def antibiotic_input(t):
 def model(t, y, γ, e, ka, rS, K, mA, mS, rA):
     Ca, S, A = y
 
-    # It is biologically unrealistic to have such low numbers, we set the limit to 1e-1 cells/ml (this is still not realistic, but otherwise the model will not work).
-    if S < 1e-1:
-        S = 0
-    if A < 1e-1:
-        A = 0
-
     dCa_dt = -γ * Ca + antibiotic_input(t)
     dS_dt = rS * S * (1 - ((S + A) / K)) - (e * Ca * ka) - (mA * S) + (mS * A)
     dA_dt = rA * A * (1 - ((S + A) / K)) + (mA * S) - (mS * A)
@@ -57,28 +51,16 @@ def model(t, y, γ, e, ka, rS, K, mA, mS, rA):
     return [dCa_dt, dS_dt, dA_dt]
 
 # Time settings
-#t_end = 126
-#timesteps = 126
-#t = np.linspace(0, t_end, timesteps)
 t_end = 126
 timesteps = 126
 t_eval = np.linspace(0, t_end, timesteps)
 # changed name of t for clarity
 
 # Solve the system
-#sol = solve_ivp(
-#    fun=lambda t, y: model(t, y, γ, e, ka, rS, K, mA, mS, rA),
-#    t_span=(t[0], t[-1]),
-#    y0=y0,
-#    t_eval=t,
-#    method='LSODA'
-#)
 result = solve_ivp(model, [0, timesteps], y0, args=(γ, e, ka, rS, K, mA, mS, rA), method='LSODA', t_eval=t_eval)
-
 
 # Extract results
 C_concentration, S_population, A_population = result.y
-#B_population, P_population = result.y #solve_ivp output
 
 # Plotting
 plt.figure(figsize=(10, 5))
