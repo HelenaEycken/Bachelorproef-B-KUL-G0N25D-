@@ -35,8 +35,8 @@ y0 = [C, S0, P0]
 # Antibiotic injection function
 def antibiotic_input(t):
     """
-    Defines antibiotic dosage over time.
-    For example, infusions every 12h for 1h.
+    Allows for antibiotic dosing at any time point.
+    Infusion duration can be modified.
     """
     injection_times = [80]  # hours
     dose = 0.02                          # amount per hour
@@ -62,35 +62,18 @@ def phage_input(t):
 def model(t, y, γ, e, ka, rS, K, i, d, b):
     C, S, P = y
 
-    # It is biologically unrealistic to have such low numbers, we set the limit to ... cells/ml (this is still not realistic, but otherwise the model will not work).
-    #if S < 1e-10:
-    #    S = 0
-    #if P < 1e-10:
-    #    P = 0
-    #if C < 1e-10:
-    #    C = 0
-
     dC_dt = -γ * C + antibiotic_input(t)                         # Antibiotic decay + input
     dS_dt = rS * S * (1 - (S / K)) - (e * C * ka) - (i * S * P)  # Sensitive bacteria
     dP_dt = (b * i * S * P) - (d * P) + phage_input(t)           # Phage replication and decay
     return [dC_dt, dS_dt, dP_dt]
 
 # Extract results
-#C_concentration, S_population, P_population = result.T
-
 # Time settings
 t_end = 126
 timesteps = 126
 t_eval = np.linspace(0, t_end, timesteps)
 
 # Solve the system
-#sol = solve_ivp(
-#    fun=lambda t, y: model(t, y, γ, e, ka, rS, K, i, d, b),
-#    t_span=(t[0], t[-1]),
-#    y0=y0,
-#    t_eval=t,
-#    method='RK45'
-#)
 result = solve_ivp(model, [0, timesteps], y0, args=(γ, e, ka, rS, K, i, d, b), method='LSODA', t_eval=t_eval)
 
 # Extract results
@@ -102,7 +85,7 @@ plt.plot(result.t, C_concentration, label="Antibiotic Concentration (C)", color=
 plt.plot(result.t, S_population, label="Sensitive Bacteria (S)", color='blue')
 plt.plot(result.t, P_population, label="Phage Population (P)", color='purple')
 plt.xlabel("Time (hours)")
-plt.ylabel("Population (cells/ml) or [antibiotic] (µg/ml)")
+plt.ylabel("Population (cells/ml or PFU/ml) or [antibiotic] (µg/ml)")
 plt.yscale("log")  # logarithmic scale for better visualization
 plt.legend()
 plt.title("IV. PAC therapy on susceptible bacteria")
