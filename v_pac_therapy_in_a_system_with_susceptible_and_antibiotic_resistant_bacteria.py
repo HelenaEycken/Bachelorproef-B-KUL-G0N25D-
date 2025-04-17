@@ -75,16 +75,9 @@ def sigma(A, S): # variable fraction of susceptible cells of total population
 # Define the system of ODEs
 def model(t, y, γ, e, ka, rS, K, mA, mS, rA, i, d, b):
     Ca, S, A, P = y  # Unpack variables
-
-    # It is biologically unrealistic to have such low numbers, we set the limit to ... cells/ml (this is still not realistic, but otherwise the model will not work).
-    #if S < 1e-10:
-    #    S = 0
-    #if P < 1e-10:
-    #    P = 0
-    #if C < 1e-10:
-    #    C = 0
-    σ = sigma(A, S)
-    α = alpha(A, S)
+    
+    σ = sigma(A, S) # variable fraction of susceptible cells of total population
+    α = alpha(A, S) # variable fraction of antibiotic-resistant cells of total population
 
     dCa_dt = -γ * Ca + antibiotic_input(t)  # Antibiotic decay + infusion
     dS_dt = rS * S * (1 - ((S + A) / K)) - (e * Ca * ka) - (i * S * σ * P) - (mA * S) + (mS * A)
@@ -99,11 +92,9 @@ timesteps = 126
 t_eval = np.linspace(0, t_end, timesteps)
 
 # Solve the ODE system
-# result = odeint(model, y0, t, args=(γ, e, ka, rS, K, mA, mS, rA, i, d, b))
 result = solve_ivp(model, [0, timesteps], y0, args=(γ, e, ka, rS, K, mA, mS, rA, i, d, b), method='LSODA', t_eval=t_eval)
 
 # Extract results
-# C_concentration, S_population, A_population, P_population = result.T
 C_concentration, S_population, A_population, P_population = result.y
 
 # Plot the results
